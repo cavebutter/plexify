@@ -1,0 +1,4 @@
+token = ''
+servername = ''
+username = ''
+password = ''
