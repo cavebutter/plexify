@@ -2,9 +2,7 @@ from plexapi.myplex import MyPlexAccount
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials, SpotifyOAuth
 import sys
-import plexconfig as p
-import json
-import requests
+import plexconfig as p  # Change this to 'import credentials as p'
 
 
 # A simple class for Plex Audio Tracks, combining attributes from various plex classes
@@ -40,14 +38,6 @@ class SpotifyTrack:
         print(f"Track: {self.title} - Track Num: {self.position} - URI: {self.uri}")
 
 
-def spotify_create_playlist(playlist):
-    scope = 'playlist-modify-public'
-    sp = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=p.spotify_client_id,
-                                                   client_secret=p.spotify_client_secret,
-                                                   scope=scope,
-                                                   redirect_uri='https://app.plex.tv/'))
-    sp.user_playlist_create(p.spotify_client_id, playlist)
-
 #  Open connection to plex server
 account = MyPlexAccount(p.username, p.password)
 plex = account.resource(p.servername).connect()
@@ -58,7 +48,7 @@ if len(sys.argv) > 1:
 else:
     #print("Error:  You need to enter a playlist name.")
     #sys.exit()
-    playlist = "Damn!"
+    playlist = "Run!"
 
 plex_tracks = []
 for item in plex.playlist(playlist).items():
@@ -71,9 +61,15 @@ if len(plex_tracks) > 99:
     print(f"The maximum number of tracks that we can add to Spotify at one time is 100.  You are trying to add {str(len(plex_tracks))}.  We will cut off the list at 100.")
     plex_tracks = plex_tracks[0:99]
 
-credentials_manager = SpotifyClientCredentials(client_id=p.spotify_client_id,
-                                               client_secret=p.spotify_client_secret)
-sp = spotipy.Spotify(client_credentials_manager=credentials_manager)
+
+scope = 'playlist-modify-public'
+sp = spotipy.Spotify(auth=p.token, auth_manager=SpotifyOAuth(
+    client_id=p.spotify_client_id,
+                                                   client_secret=p.spotify_client_secret,
+                                                   scope=scope,
+                                                   redirect_uri='https://app.plex.tv/'))
+user_id = sp.me()['id']
+
 
 unmatched_tracks = []
 spotify_tracks = {}  # track titles and spotify id's
@@ -84,10 +80,10 @@ for track in plex_tracks:
         print(f'No match for {track.title}')
         unmatched_tracks.append(track)
     else:
-        spotify_tracks[track.title] = track_id['tracks']['items'][0]['uri']
+        spotify_tracks[track.title] = track_id['tracks']['items'][0]['id'] # used to be
+        # URI
 
 print(f"Matched {str(len(spotify_tracks))} of {str(len(plex_tracks))}:")
-print(spotify_tracks)
 
 if len(unmatched_tracks) == 0:
     pass
@@ -135,7 +131,7 @@ else:
                         sp_tracks = sp.album_tracks(Album.album_uri)
                         for n in range(len(sp_tracks['items'])):
                             track_num = sp_tracks['items'][n]['track_number']
-                            track_uri = sp_tracks['items'][n]['uri']
+                            track_uri = sp_tracks['items'][n]['id']  # used to be URI
                             track_name = sp_tracks['items'][n]['name']
                             Track = str(k)
                             Track = SpotifyTrack(track_num,track_uri,track_name)
@@ -150,5 +146,13 @@ else:
                                 spotify_tracks[album_track.title] = album_track.uri
                                 print(f"Added {album_track.title} to the list!")
 
-    print(spotify_tracks)
-    spotify_create_playlist(playlist)
+
+    spotify_track_ids = list(spotify_tracks.values())
+
+
+sp.user_playlist_create(user_id,playlist)
+user_playlists = sp.user_playlists(user_id)
+for item in user_playlists['items']:
+    if item['name'] == playlist:
+        playlist_id = item['id']
+sp.playlist_add_items(playlist_id=playlist_id,items=spotify_track_ids)

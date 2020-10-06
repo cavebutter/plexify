@@ -1,4 +1,0 @@
-token = ''
-servername = ''
-username = ''
-password = ''
