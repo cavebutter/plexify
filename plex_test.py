@@ -1,8 +1,10 @@
 from plexapi.myplex import MyPlexAccount
 import spotipy
-from spotipy.oauth2 import SpotifyClientCredentials, SpotifyOAuth
+import spotipy.util as util
+from spotipy.oauth2 import SpotifyOAuth, SpotifyClientCredentials
 import sys
 import plexconfig as p  # Change this to 'import credentials as p'
+
 
 #####################################
 #           Classes                 #
@@ -43,8 +45,10 @@ class SpotifyTrack:
     def __str__(self):
         print(f"Track: {self.title} - Track Num: {self.position} - URI: {self.uri}")
 
+#############################
+#    Plex Authentication    #
+#############################
 
-#  Open connection to plex server
 account = MyPlexAccount(p.username, p.password)
 plex = account.resource(p.servername).connect()
 
@@ -67,11 +71,24 @@ if len(plex_tracks) > 99:
     print(f"The maximum number of tracks that we can add to Spotify at one time is 100.  You are trying to add {str(len(plex_tracks))}.  We will cut off the list at 100.")
     plex_tracks = plex_tracks[0:99]
 
-# Open connection to Spotify
-scope = 'playlist-modify-public'
-sp = spotipy.Spotify(auth=p.token, auth_manager=SpotifyOAuth(
-    client_id=p.spotify_client_id, client_secret=p.spotify_client_secret, scope=scope, redirect_uri='https://app.plex.tv/'))
-user_id = sp.me()['id']
+################################
+#    Spotify Authentication    #
+################################
+
+#  Get a new token
+#  This method is deprecated, which is a shame bc it's the only one I managed to get
+#  working.  It works for now, but will have to come back and change it at some point
+#  to OAuth.
+token = util.prompt_for_user_token(username=p.sp_username,
+                                   scope=p.scope,
+                                   client_id=p.spotify_client_id,
+                                   client_secret=p.spotify_client_secret,
+                                   redirect_uri=p.redirect_uri,
+                                   cache_path=p.cache)
+
+if token:
+    sp = spotipy.Spotify(auth=token)
+    user_id = sp.me()['id']
 
 
 unmatched_tracks = []
@@ -107,7 +124,7 @@ else:
             try:
                 artist_uri = result['tracks']['items'][0]['artists'][0]['uri']
             except IndexError:
-                print(f"We couldn't fine an artist match for {track.artist}.  "
+                print(f"We couldn't find an artist match for {track.artist}.  "
                       f"Skipping...")
                 continue
             sp_artist_albums = sp.artist_albums(artist_uri, album_type='album',limit=50)
