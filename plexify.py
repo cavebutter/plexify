@@ -3,8 +3,7 @@ import spotipy
 import spotipy.util as util
 from spotipy.oauth2 import SpotifyOAuth, SpotifyClientCredentials
 import sys
-import plexconfig as p  # Change this to 'import credentials as p'
-
+import credentials as p
 
 #####################################
 #           Classes                 #
