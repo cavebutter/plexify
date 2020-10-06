@@ -55,9 +55,9 @@ plex = account.resource(p.servername).connect()
 if len(sys.argv) > 1:
     playlist = sys.argv[1]
 else:
-    #print("Error:  You need to enter a playlist name.")
-    #sys.exit()
-    playlist = "Run!"
+    print("Error:  You need to enter a playlist name.")
+    sys.exit()
+
 
 plex_tracks = []
 for item in plex.playlist(playlist).items():
