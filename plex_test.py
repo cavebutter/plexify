@@ -4,8 +4,14 @@ from spotipy.oauth2 import SpotifyClientCredentials, SpotifyOAuth
 import sys
 import plexconfig as p  # Change this to 'import credentials as p'
 
+#####################################
+#           Classes                 #
+#  Make things easier with simple   #
+#  classes to call track and album  #
+#  info                             #
+#####################################
 
-# A simple class for Plex Audio Tracks, combining attributes from various plex classes
+
 class PlexTrack:
     def __init__(self, title, album, artist):
         self.title = title
@@ -52,7 +58,7 @@ else:
 
 plex_tracks = []
 for item in plex.playlist(playlist).items():
-    p_track = str(item.title + 'pt')
+    p_track = str(item.title + 'pt')  # Don't know if this is nec, but I do it later too.
     p_track = PlexTrack(item.title, item.parentTitle,
                         item.grandparentTitle)
     plex_tracks.append(p_track)
@@ -61,13 +67,10 @@ if len(plex_tracks) > 99:
     print(f"The maximum number of tracks that we can add to Spotify at one time is 100.  You are trying to add {str(len(plex_tracks))}.  We will cut off the list at 100.")
     plex_tracks = plex_tracks[0:99]
 
-
+# Open connection to Spotify
 scope = 'playlist-modify-public'
 sp = spotipy.Spotify(auth=p.token, auth_manager=SpotifyOAuth(
-    client_id=p.spotify_client_id,
-                                                   client_secret=p.spotify_client_secret,
-                                                   scope=scope,
-                                                   redirect_uri='https://app.plex.tv/'))
+    client_id=p.spotify_client_id, client_secret=p.spotify_client_secret, scope=scope, redirect_uri='https://app.plex.tv/'))
 user_id = sp.me()['id']
 
 
@@ -86,10 +89,13 @@ for track in plex_tracks:
 print(f"Matched {str(len(spotify_tracks))} of {str(len(plex_tracks))}:")
 
 if len(unmatched_tracks) == 0:
-    pass
+    print(f"We matched every track in your playlist!  Creating an exact copy of "
+          f"{playlist} in Spotify.")
 else:
     print(f"There are {str(len(plex_tracks) - len(spotify_tracks))} un-matched.")
-    proceed = input("What would you like to do?\n1) Create a playlist without those "
+    proceed = ''
+    while proceed not in ['1','2']:
+        proceed = input("What would you like to do?\n1) Create a playlist without those "
                     "tracks \n2) Try to match them a different way:   ")
     if proceed == "2":
 
@@ -123,7 +129,9 @@ else:
             if album_selection == 'skip':
                 pass
             else:
-                k = 1
+                k = 1  # This whole counter thing feels unnec, but putting it in
+                # stopped the track_name var from changing.  Could have instantiated
+                # the class later, I suppose.  Whatever, it works.
                 album_tracks = []
                 for album in artist_albums:
                     if album_selection == str(album.position):
@@ -145,9 +153,12 @@ else:
                             if track_selection == str(album_track.position):
                                 spotify_tracks[album_track.title] = album_track.uri
                                 print(f"Added {album_track.title} to the list!")
+    elif proceed == '1':
+        pass
 
 
-    spotify_track_ids = list(spotify_tracks.values())
+
+spotify_track_ids = list(spotify_tracks.values())
 
 
 sp.user_playlist_create(user_id,playlist)
@@ -156,3 +167,4 @@ for item in user_playlists['items']:
     if item['name'] == playlist:
         playlist_id = item['id']
 sp.playlist_add_items(playlist_id=playlist_id,items=spotify_track_ids)
+print("Looks like we did it!  Thanks and bye!")
