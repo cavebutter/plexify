@@ -153,7 +153,7 @@ else:
                 for album in artist_albums:
                     if album_selection == str(album.position):
                         print("Match! " + album.album_name)
-                        sp_tracks = sp.album_tracks(Album.album_uri)
+                        sp_tracks = sp.album_tracks(album.album_uri)
                         for n in range(len(sp_tracks['items'])):
                             track_num = sp_tracks['items'][n]['track_number']
                             track_uri = sp_tracks['items'][n]['id']  # used to be URI
