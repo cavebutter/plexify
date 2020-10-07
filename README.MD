@@ -88,6 +88,9 @@ Run from the terminal or command prompt with:
   *  The more bootlegs, imports, and weird stuff you have in your playlists, the more
    un-matched tracks you'll get.
    *  If the code looks like it was written by a bumbling amateur...whatever, it works.
+   *  `credentials.py` really should have been an .ini file.  I got lazy and it doesn't really make a big difference, just looks sloppy.
+   *  Did the app ask you to enter the URL that it just opened in your browser?  Copy and paste the entire link at the prompt.  This should only happen to you once, if ever.
+   *  TODO:  Looks like pulling tracks from the selected album could use some work
    
    ### Thank you
    I hope you find this application useful.

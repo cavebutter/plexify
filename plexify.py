@@ -3,8 +3,7 @@ import spotipy
 import spotipy.util as util
 from spotipy.oauth2 import SpotifyOAuth, SpotifyClientCredentials
 import sys
-import plexconfig as p  # Change this to 'import credentials as p'
-
+import credentials as p
 
 #####################################
 #           Classes                 #
@@ -56,9 +55,9 @@ plex = account.resource(p.servername).connect()
 if len(sys.argv) > 1:
     playlist = sys.argv[1]
 else:
-    #print("Error:  You need to enter a playlist name.")
-    #sys.exit()
-    playlist = "Run!"
+    print("Error:  You need to enter a playlist name.")
+    sys.exit()
+
 
 plex_tracks = []
 for item in plex.playlist(playlist).items():
