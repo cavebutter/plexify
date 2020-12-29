@@ -3,7 +3,7 @@ import spotipy
 import spotipy.util as util
 from spotipy.oauth2 import SpotifyOAuth, SpotifyClientCredentials
 import sys
-import credentials as p
+import plexconfig as p
 
 #####################################
 #           Classes                 #
