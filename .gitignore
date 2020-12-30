@@ -2,3 +2,4 @@ venv
 plexconfig.py
 .idea
 .cache*
+plexigram.log
